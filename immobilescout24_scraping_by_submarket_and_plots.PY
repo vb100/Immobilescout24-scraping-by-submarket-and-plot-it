@@ -34,7 +34,8 @@ def startScrapping(d_urls):
         # base_url = "https://www.immobilienscout24.de/gewerbe-flaechen/de/hamburg/hamburg/buero-mieten/"
         base_url = d_urls["URL"][submarket]
         
-        print('Base URL:'.format(base_url))
+        print('\nBase URL for a market {} \n {} \n:'.format(d_urls["Submarket"][submarket], 
+              base_url))
         
         r = requests.get(base_url)
         c = r.content
@@ -56,22 +57,26 @@ def startScrapping(d_urls):
         # Dive inside the page of property
         def insidePage(url):
             
-            print(url)
-            r = requests.get(url)
-            c = r.content
-            soup = BeautifulSoup(c, "html.parser")
-            
             try:
-                built_year = soup.find("dd", {"class":"is24qa-letzte-modernisierungsanierung grid-item three-fifths"}).text
-                print("*** last renovation: " + built_year + " ***")
-            except:
-                if "Baujahr".upper() in str(soup).upper():
-                    try:
-                        built_year = soup.find("dd", {"class":"is24qa-baujahr grid-item three-fifths"}).text
-                    except:
+                print('--: {}'.format(url))
+                r = requests.get(url)
+                c = r.content
+                soup = BeautifulSoup(c, "html.parser")
+                
+                try:
+                    built_year = soup.find("dd", {"class":"is24qa-letzte-modernisierungsanierung grid-item three-fifths"}).text
+                    #print("*** last renovation: " + built_year + " ***")
+                except:
+                    if "Baujahr".upper() in str(soup).upper():
+                        try:
+                            built_year = soup.find("dd", {"class":"is24qa-baujahr grid-item three-fifths"}).text
+                        except:
+                            built_year = 0
+                    else:
                         built_year = 0
-                else:
-                    built_year = 0
+            except:
+                print('!!! The internal page can not be read !!!')
+                built_year = 0
             
             return built_year
         
@@ -269,7 +274,7 @@ def startScrapping(d_urls):
                 record["URL"] = my_url
                 record["Timestamp"] = today_is
             
-                print("-------------------------")
+                #print("-------------------------")
                 all_properties.append(dict(record))
         # <----------------- Finishing scrapping ::::::::::
         print("Finished.")
@@ -283,7 +288,7 @@ def startScrapping(d_urls):
             
             os.chdir(directory)
             timeNow = str(datetime.datetime.now()).replace(":","-")[:-10]
-            DF.to_excel("immobilienscout24.de  HAMBURG" + filename + " " + timeNow + ".xls")
+            DF.to_excel("immobilienscout24.de " + filename + " " + timeNow + ".xls")
             return None
         # Save data to file : end <--------------        
         
@@ -294,7 +299,7 @@ def startScrapping(d_urls):
         # Save DataFrame to CSV file in current workspace directory
         writeToFile(df, d_urls["Submarket"][submarket])
     
-    print("This submarket is done.")
+    print("{} : this submarket is done.".format(d_urls["Submarket"][submarket]))
     print(" ")
     
     return None
@@ -413,8 +418,6 @@ import seaborn as sns
 sns.set(style="whitegrid", palette="pastel", color_codes=True)
 
 # :::::::::::::::::::::: Plot the TIMELINE with Prices ::::::::::::::::::::::::
-
-
 
 # DRAW A NESTED BOXPLOT :::::::::::::::::::::::::::::::::::::::::::::::::::::::
 # (https://seaborn.pydata.org/examples/grouped_boxplot.html)
